@@ -112,8 +112,11 @@ def load_league_data(league_code):
         parquet_url = build_github_url(f"{league_code}_{season}.parquet")
         logger.info(f"Loading parquet from: {parquet_url}")
         
-        # Увеличенный timeout для больших файлов (MLS)
-        matchdata = pd.read_parquet(parquet_url, storage_options={'timeout': 120})
+        # Загружаем parquet через requests с timeout
+        parquet_response = requests.get(parquet_url, timeout=120)
+        parquet_response.raise_for_status()
+        matchdata = pd.read_parquet(io.BytesIO(parquet_response.content))
+        logger.info(f"Parquet loaded successfully, shape: {matchdata.shape}")
         
         if "playing_position" in matchdata.columns:
             matchdata["playing_position"] = matchdata["playing_position"].apply(normalize_position)
@@ -123,9 +126,10 @@ def load_league_data(league_code):
         
         excel_url = build_github_url(f"{league_code}_{season}_playerstats_by_position_group.xlsx")
         logger.info(f"Loading excel from: {excel_url}")
-        response = requests.get(excel_url, timeout=120)  # Увеличен timeout до 120 секунд
+        response = requests.get(excel_url, timeout=120)
         response.raise_for_status()
         player_stats = pd.read_excel(io.BytesIO(response.content))
+        logger.info(f"Excel loaded successfully, shape: {player_stats.shape}")
         
         data_cache[cache_key] = {
             'matchdata': matchdata,
@@ -909,4 +913,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
