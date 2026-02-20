@@ -35,10 +35,10 @@ BRANCH = "main"
 
 # Маппинг лиг
 LEAGUES = {
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England - Premier League": "ENG1",
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England - Championship": "ENG2",
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England - League One": "ENG3",
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 England - League Two": "ENG4",
+    "�🇧 England - Premier League": "ENG1",
+    "�🇧 England - Championship": "ENG2",
+    "�🇧 England - League One": "ENG3",
+    "�🇧 England - League Two": "ENG4",
     "🇪🇸 Spain - La Liga": "SPA1",
     "🇩🇪 Germany - Bundesliga": "GER1",
     "🇮🇹 Italy - Serie A": "ITA1",
@@ -50,7 +50,7 @@ LEAGUES = {
     "🇬🇷 Greece - Super League": "GRE1",
     "🇦🇹 Austria - Bundesliga": "AUT1",
     "🇩🇰 Denmark - Superliga": "DEN1",
-    "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland - Premiership": "SCO1",
+    "�🇧 Scotland - Premiership": "SCO1",
     "🇸🇦 Saudi Arabia - Pro League": "SAU1",
     "🇺🇸 USA - MLS": "USA1",
     "🇧🇷 Brazil - Brasileirao": "BRA1",
