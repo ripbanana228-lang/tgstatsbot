@@ -39,28 +39,37 @@ LEAGUES = {
     "Championship": "ENG2",
     "League One": "ENG3",
     "League Two": "ENG4",
-    "🇪🇸 La Liga": "SPA1",
-    "🇩🇪 Bundesliga": "GER1",
-    "🇮🇹 Serie A": "ITA1",
-    "🇫🇷 Ligue 1": "FRA1",
-    "🇳🇱 Eredivisie": "NED1",
-    "🇵🇹 Primeira Liga": "POR1",
-    "🇧🇪 Pro League": "BEL1",
-    "🇹🇷 Süper Lig": "TUR1",
-    "🇬🇷 Super League": "GRE1",
-    "🇦🇹 Bundesliga": "AUT1",
-    "🇩🇰 Superliga": "DEN1",
-    "Premiership": "SCO1",
-    "🇸🇦 Pro League": "SAU1",
-    "🇺🇸 MLS": "USA1",
-    "🇧🇷 Brasileirão": "BRA1",
-    "🇯🇵 J1 League": "JAP1",
-    "🇮🇪 Premier Division": "IRE1",
-    "🇸🇪 Allsvenskan": "SWE1",
-    "🇦🇺 A-League": "AUS1",
+    "La Liga": "SPA1",
+    "Bundesliga": "GER1",
+    "Serie A": "ITA1",
+    "Ligue 1": "FRA1",
+    "Eredivisie": "NED1",
+    "Primeira Liga": "POR1",
+    "Pro League (Belgium)": "BEL1",
+    "Super Lig": "TUR1",
+    "Super League (Greece)": "GRE1",
+    "Bundesliga (Austria)": "AUT1",
+    "Superliga (Denmark)": "DEN1",
+    "Premiership (Scotland)": "SCO1",
+    "Pro League (Saudi Arabia)": "SAU1",
+    "MLS": "USA1",
+    "Brasileirao": "BRA1",
+    "J1 League": "JAP1",
+    "Premier Division (Ireland)": "IRE1",
+    "Allsvenskan": "SWE1",
+    "A-League": "AUS1",
 }
 
-SEASON = "2526"
+# Маппинг сезонов для лиг (некоторые используют 2025 вместо 2526)
+LEAGUE_SEASONS = {
+    "USA1": "2025",  # MLS
+    "BRA1": "2025",  # Brasileirão
+    "JAP1": "2025",  # J1 League
+    "IRE1": "2025",  # Premier Division
+    "SWE1": "2025",  # Allsvenskan
+}
+
+DEFAULT_SEASON = "2526"
 
 # Кэш данных
 data_cache = {}
@@ -92,13 +101,15 @@ def get_most_played_position(player_stats, player_name, team_name):
 
 def load_league_data(league_code):
     """Загрузить данные лиги с GitHub"""
-    cache_key = f"{league_code}_{SEASON}"
+    # Определяем сезон для лиги
+    season = LEAGUE_SEASONS.get(league_code, DEFAULT_SEASON)
+    cache_key = f"{league_code}_{season}"
     
     if cache_key in data_cache:
         return data_cache[cache_key]
     
     try:
-        parquet_url = build_github_url(f"{league_code}_{SEASON}.parquet")
+        parquet_url = build_github_url(f"{league_code}_{season}.parquet")
         matchdata = pd.read_parquet(parquet_url)
         
         if "playing_position" in matchdata.columns:
@@ -107,7 +118,7 @@ def load_league_data(league_code):
         if "pass_recipient_position" in matchdata.columns:
             matchdata["pass_recipient_position"] = matchdata["pass_recipient_position"].apply(normalize_position)
         
-        excel_url = build_github_url(f"{league_code}_{SEASON}_playerstats_by_position_group.xlsx")
+        excel_url = build_github_url(f"{league_code}_{season}_playerstats_by_position_group.xlsx")
         response = requests.get(excel_url)
         player_stats = pd.read_excel(io.BytesIO(response.content))
         
@@ -272,24 +283,24 @@ async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # SHOOTING
     stats_text += "🎯 SHOOTING\n"
-    stats_text += f"Shots p90: {weighted_avg('shots_per_90'):.2f}\n"
-    stats_text += f"Shots on Target p90: {weighted_avg('shots_on_target_per_90'):.2f}\n"
+    stats_text += f"Shots per 90: {weighted_avg('shots_per_90'):.2f}\n"
+    stats_text += f"Shots on Target per 90: {weighted_avg('shots_on_target_per_90'):.2f}\n"
     stats_text += f"Shot Accuracy: {weighted_avg('shot_accuracy')*100:.1f}%\n"
-    stats_text += f"xG p90: {weighted_avg('xG_per_90'):.2f}\n"
-    stats_text += f"xGOT p90: {weighted_avg('xGOT_per_90'):.2f}\n"
-    stats_text += f"Goals p90: {weighted_avg('goals_per_90'):.2f}\n"
+    stats_text += f"xG per 90: {weighted_avg('xG_per_90'):.2f}\n"
+    stats_text += f"xGOT per 90: {weighted_avg('xGOT_per_90'):.2f}\n"
+    stats_text += f"Goals per 90: {weighted_avg('goals_per_90'):.2f}\n"
     stats_text += f"Shot Quality: {weighted_avg('shot_quality')*100:.1f}%\n\n"
     
     # PASSING
     stats_text += "🎯 PASSING\n"
     stats_text += f"Pass Completion: {weighted_avg('pass_completion')*100:.1f}%\n"
-    stats_text += f"Pass Comp F3rd: {weighted_avg('pass_completion_final_third')*100:.1f}%\n"
-    stats_text += f"Passes p90: {weighted_avg('attempted_passes_per_90'):.2f}\n"
-    stats_text += f"Prog Passes p90: {weighted_avg('prog_passes_per_90'):.2f}\n"
-    stats_text += f"% Prog Passes: {weighted_avg('%_passes_are_progressive')*100:.1f}%\n"
-    stats_text += f"Key Passes p90: {weighted_avg('keyPasses_per_90'):.2f}\n"
-    stats_text += f"Assists p90: {weighted_avg('assists_per_90'):.2f}\n"
-    stats_text += f"xA p90: {weighted_avg('xA_per_90'):.2f}\n"
+    stats_text += f"Pass Comp Final Third: {weighted_avg('pass_completion_final_third')*100:.1f}%\n"
+    stats_text += f"Passes per 90: {weighted_avg('attempted_passes_per_90'):.2f}\n"
+    stats_text += f"Progressive Passes per 90: {weighted_avg('prog_passes_per_90'):.2f}\n"
+    stats_text += f"% Progressive Passes: {weighted_avg('%_passes_are_progressive')*100:.1f}%\n"
+    stats_text += f"Key Passes per 90: {weighted_avg('keyPasses_per_90'):.2f}\n"
+    stats_text += f"Assists per 90: {weighted_avg('assists_per_90'):.2f}\n"
+    stats_text += f"xA per 90: {weighted_avg('xA_per_90'):.2f}\n"
     
     keyboard = [
         [InlineKeyboardButton("Next Page →", callback_data="stats_page2")],
@@ -327,31 +338,31 @@ async def show_stats_page2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # DRIBBLING & CARRYING
     stats_text += "🏃 DRIBBLING & CARRYING\n"
-    stats_text += f"Dribbles p90: {weighted_avg('dribbles_per_90'):.2f}\n"
-    stats_text += f"Prog Carries p90: {weighted_avg('prog_carries_per_90'):.2f}\n"
-    stats_text += f"Carries to F3rd p90: {weighted_avg('carries_to_final_third_per_90'):.2f}\n"
-    stats_text += f"Carrying Yards p90: {weighted_avg('carrying_yards_per_90'):.2f}\n"
-    stats_text += f"10+ Yard Carries p90: {weighted_avg('ten_yard_carries_per_90'):.2f}\n"
-    stats_text += f"Fouled p90: {weighted_avg('fouled_per_90'):.2f}\n\n"
+    stats_text += f"Dribbles per 90: {weighted_avg('dribbles_per_90'):.2f}\n"
+    stats_text += f"Progressive Carries per 90: {weighted_avg('prog_carries_per_90'):.2f}\n"
+    stats_text += f"Carries to Final Third per 90: {weighted_avg('carries_to_final_third_per_90'):.2f}\n"
+    stats_text += f"Carrying Yards per 90: {weighted_avg('carrying_yards_per_90'):.2f}\n"
+    stats_text += f"10+ Yard Carries per 90: {weighted_avg('ten_yard_carries_per_90'):.2f}\n"
+    stats_text += f"Fouled per 90: {weighted_avg('fouled_per_90'):.2f}\n\n"
     
     # TOUCHES
     stats_text += "👆 TOUCHES\n"
-    stats_text += f"Touches p90: {weighted_avg('touches_per_90'):.2f}\n"
-    stats_text += f"Touches Final thirdrd p90: {weighted_avg('touches_in_final_third_per_90'):.2f}\n"
-    stats_text += f"Touches Middle third p90: {weighted_avg('touches_in_middle_third_per_90'):.2f}\n"
-    stats_text += f"Touches Own third p90: {weighted_avg('touches_in_own_third_per_90'):.2f}\n"
-    stats_text += f"Touches in Box p90: {weighted_avg('touches_in_box_per_90'):.2f}\n"
-    stats_text += f"Received Passes p90: {weighted_avg('received_passes_per_90'):.2f}\n\n"
+    stats_text += f"Touches per 90: {weighted_avg('touches_per_90'):.2f}\n"
+    stats_text += f"Touches Final Third per 90: {weighted_avg('touches_in_final_third_per_90'):.2f}\n"
+    stats_text += f"Touches Middle Third per 90: {weighted_avg('touches_in_middle_third_per_90'):.2f}\n"
+    stats_text += f"Touches Own Third per 90: {weighted_avg('touches_in_own_third_per_90'):.2f}\n"
+    stats_text += f"Touches in Box per 90: {weighted_avg('touches_in_box_per_90'):.2f}\n"
+    stats_text += f"Received Passes per 90: {weighted_avg('received_passes_per_90'):.2f}\n\n"
     
     # DEFENDING
     stats_text += "🛡️ DEFENDING\n"
-    stats_text += f"Tackles p90: {weighted_avg('tackles_per_90'):.2f}\n"
+    stats_text += f"Tackles per 90: {weighted_avg('tackles_per_90'):.2f}\n"
     stats_text += f"Tackle Win Rate: {weighted_avg('tackle_win_rate')*100:.1f}%\n"
-    stats_text += f"Interceptions p90: {weighted_avg('interceptions_per_90'):.2f}\n"
-    stats_text += f"Ball Recoveries p90: {weighted_avg('ball_recoveries_per_90'):.2f}\n"
-    stats_text += f"Clearances p90: {weighted_avg('clearances_per_90'):.2f}\n"
-    stats_text += f"Blocked Shots p90: {weighted_avg('blocked_shots_per_90'):.2f}\n"
-    stats_text += f"Aerials p90: {weighted_avg('aerials_per_90'):.2f}\n"
+    stats_text += f"Interceptions per 90: {weighted_avg('interceptions_per_90'):.2f}\n"
+    stats_text += f"Ball Recoveries per 90: {weighted_avg('ball_recoveries_per_90'):.2f}\n"
+    stats_text += f"Clearances per 90: {weighted_avg('clearances_per_90'):.2f}\n"
+    stats_text += f"Blocked Shots per 90: {weighted_avg('blocked_shots_per_90'):.2f}\n"
+    stats_text += f"Aerials per 90: {weighted_avg('aerials_per_90'):.2f}\n"
     stats_text += f"Aerial Win Rate: {weighted_avg('aerial_win_rate')*100:.1f}%\n"
     
     keyboard = [
@@ -390,27 +401,27 @@ async def show_stats_page3(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # THREAT & IMPACT
     stats_text += "⚡ THREAT & IMPACT\n"
-    stats_text += f"Threat Created p90: {weighted_avg('total_threat_created_per_90'):.2f}\n"
-    stats_text += f"Passing Threat p90: {weighted_avg('passing_threat_per_90'):.2f}\n"
-    stats_text += f"Carry Threat p90: {weighted_avg('carry_threat_per_90'):.2f}\n"
-    stats_text += f"Threat Prevented p90: {weighted_avg('total_threat_prevented_per_90'):.2f}\n"
-    stats_text += f"Player Impact p90: {weighted_avg('threat_value_per_90'):.2f}\n\n"
+    stats_text += f"Threat Created per 90: {weighted_avg('total_threat_created_per_90'):.2f}\n"
+    stats_text += f"Passing Threat per 90: {weighted_avg('passing_threat_per_90'):.2f}\n"
+    stats_text += f"Carry Threat per 90: {weighted_avg('carry_threat_per_90'):.2f}\n"
+    stats_text += f"Threat Prevented per 90: {weighted_avg('total_threat_prevented_per_90'):.2f}\n"
+    stats_text += f"Player Impact per 90: {weighted_avg('threat_value_per_90'):.2f}\n\n"
     
     # ATTACKING ACTIONS
     stats_text += "⚔️ ATTACKING ACTIONS\n"
-    stats_text += f"Att Actions p90: {weighted_avg('attacking_actions_per_90'):.2f}\n"
-    stats_text += f"Succ Att Actions p90: {weighted_avg('successful_attacking_actions_per_90'):.2f}\n\n"
+    stats_text += f"Attacking Actions per 90: {weighted_avg('attacking_actions_per_90'):.2f}\n"
+    stats_text += f"Successful Att Actions per 90: {weighted_avg('successful_attacking_actions_per_90'):.2f}\n\n"
     
     # DEFENSIVE ACTIONS
     stats_text += "🛡️ DEFENSIVE ACTIONS\n"
-    stats_text += f"Def Actions p90: {weighted_avg('defensive_actions_per_90'):.2f}\n"
-    stats_text += f"Succ Def Actions p90: {weighted_avg('successful_defensive_actions_per_90'):.2f}\n\n"
+    stats_text += f"Defensive Actions per 90: {weighted_avg('defensive_actions_per_90'):.2f}\n"
+    stats_text += f"Successful Def Actions per 90: {weighted_avg('successful_defensive_actions_per_90'):.2f}\n\n"
     
     # DISCIPLINE
     stats_text += "🟨 DISCIPLINE\n"
-    stats_text += f"Fouls p90: {weighted_avg('fouls_per_90'):.2f}\n"
-    stats_text += f"Yellow Cards p90: {weighted_avg('yellow_cards_per_90'):.2f}\n"
-    stats_text += f"Red Cards p90: {weighted_avg('red_cards_per_90'):.2f}\n\n"
+    stats_text += f"Fouls per 90: {weighted_avg('fouls_per_90'):.2f}\n"
+    stats_text += f"Yellow Cards per 90: {weighted_avg('yellow_cards_per_90'):.2f}\n"
+    stats_text += f"Red Cards per 90: {weighted_avg('red_cards_per_90'):.2f}\n\n"
     
     # POSITIONS
     stats_text += "📍 POSITIONS\n"
@@ -881,6 +892,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
