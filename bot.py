@@ -35,11 +35,29 @@ BRANCH = "main"
 
 # Маппинг лиг
 LEAGUES = {
-    "Premier League": "ENG1",
-    "La Liga": "SPA1",
-    "Bundesliga": "GER1",
-    "Serie A": "ITA1",
-    "Ligue 1": "FRA1",
+    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League": "ENG1",
+    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship": "ENG2",
+    "🏴󠁧󠁢󠁥󠁮 League One": "ENG3",
+    "🏴󠁧󠁢 League Two": "ENG4",
+    "🇪🇸 La Liga": "SPA1",
+    "🇩🇪 Bundesliga": "GER1",
+    "🇮🇹 Serie A": "ITA1",
+    "🇫🇷 Ligue 1": "FRA1",
+    "🇳🇱 Eredivisie": "NED1",
+    "🇵🇹 Primeira Liga": "POR1",
+    "🇧🇪 Pro League": "BEL1",
+    "🇹🇷 Süper Lig": "TUR1",
+    "🇬🇷 Super League": "GRE1",
+    "🇦🇹 Bundesliga": "AUT1",
+    "🇩🇰 Superliga": "DEN1",
+    "🏴󠁧󠁢󠁳󠁣󠁴 Premiership": "SCO1",
+    "🇸🇦 Pro League": "SAU1",
+    "🇺🇸 MLS": "USA1",
+    "🇧🇷 Brasileirão": "BRA1",
+    "🇯🇵 J1 League": "JAP1",
+    "🇮🇪 Premier Division": "IRE1",
+    "🇸🇪 Allsvenskan": "SWE1",
+    "🇦🇺 A-League": "AUS1",
 }
 
 SEASON = "2526"
@@ -863,4 +881,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
