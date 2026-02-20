@@ -35,29 +35,29 @@ BRANCH = "main"
 
 # Маппинг лиг
 LEAGUES = {
-    "Premier League": "ENG1",
-    "Championship": "ENG2",
-    "League One": "ENG3",
-    "League Two": "ENG4",
-    "La Liga": "SPA1",
-    "Bundesliga": "GER1",
-    "Serie A": "ITA1",
-    "Ligue 1": "FRA1",
-    "Eredivisie": "NED1",
-    "Primeira Liga": "POR1",
-    "Pro League (Belgium)": "BEL1",
-    "Super Lig": "TUR1",
-    "Super League (Greece)": "GRE1",
-    "Bundesliga (Austria)": "AUT1",
-    "Superliga (Denmark)": "DEN1",
-    "Premiership (Scotland)": "SCO1",
-    "Pro League (Saudi Arabia)": "SAU1",
-    "MLS": "USA1",
-    "Brasileirao": "BRA1",
-    "J1 League": "JAP1",
-    "Premier Division (Ireland)": "IRE1",
-    "Allsvenskan": "SWE1",
-    "A-League": "AUS1",
+    "England - Premier League": "ENG1",
+    "England - Championship": "ENG2",
+    "England - League One": "ENG3",
+    "England - League Two": "ENG4",
+    "Spain - La Liga": "SPA1",
+    "Germany - Bundesliga": "GER1",
+    "Italy - Serie A": "ITA1",
+    "France - Ligue 1": "FRA1",
+    "Netherlands - Eredivisie": "NED1",
+    "Portugal - Primeira Liga": "POR1",
+    "Belgium - Pro League": "BEL1",
+    "Turkey - Super Lig": "TUR1",
+    "Greece - Super League": "GRE1",
+    "Austria - Bundesliga": "AUT1",
+    "Denmark - Superliga": "DEN1",
+    "Scotland - Premiership": "SCO1",
+    "Saudi Arabia - Pro League": "SAU1",
+    "USA - MLS": "USA1",
+    "Brazil - Brasileirao": "BRA1",
+    "Japan - J1 League": "JAP1",
+    "Ireland - Premier Division": "IRE1",
+    "Sweden - Allsvenskan": "SWE1",
+    "Australia - A-League": "AUS1",
 }
 
 # Маппинг сезонов для лиг (некоторые используют 2025 вместо 2526)
@@ -110,7 +110,10 @@ def load_league_data(league_code):
     
     try:
         parquet_url = build_github_url(f"{league_code}_{season}.parquet")
-        matchdata = pd.read_parquet(parquet_url)
+        logger.info(f"Loading parquet from: {parquet_url}")
+        
+        # Увеличенный timeout для больших файлов (MLS)
+        matchdata = pd.read_parquet(parquet_url, storage_options={'timeout': 120})
         
         if "playing_position" in matchdata.columns:
             matchdata["playing_position"] = matchdata["playing_position"].apply(normalize_position)
@@ -119,7 +122,9 @@ def load_league_data(league_code):
             matchdata["pass_recipient_position"] = matchdata["pass_recipient_position"].apply(normalize_position)
         
         excel_url = build_github_url(f"{league_code}_{season}_playerstats_by_position_group.xlsx")
-        response = requests.get(excel_url)
+        logger.info(f"Loading excel from: {excel_url}")
+        response = requests.get(excel_url, timeout=120)  # Увеличен timeout до 120 секунд
+        response.raise_for_status()
         player_stats = pd.read_excel(io.BytesIO(response.content))
         
         data_cache[cache_key] = {
@@ -127,9 +132,13 @@ def load_league_data(league_code):
             'player_stats': player_stats
         }
         
+        logger.info(f"Successfully loaded data for {league_code}_{season}")
         return data_cache[cache_key]
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout loading data for {league_code}_{season} - file too large")
+        return None
     except Exception as e:
-        logger.error(f"Data loading error: {e}")
+        logger.error(f"Data loading error for {league_code}_{season}: {type(e).__name__}: {e}")
         return None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -156,12 +165,20 @@ async def league_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['league_name'] = league_name
     context.user_data['league_code'] = league_code
     
-    await query.edit_message_text(f"Loading...")
+    await query.edit_message_text(f"⏳ Loading {league_name}...")
     
     data = load_league_data(league_code)
     
     if data is None:
-        await query.edit_message_text("Data loading error")
+        # Определяем сезон для лиги
+        season = LEAGUE_SEASONS.get(league_code, DEFAULT_SEASON)
+        await query.edit_message_text(
+            f"❌ Data loading error for {league_name}\n\n"
+            f"League code: {league_code}\n"
+            f"Season: {season}\n\n"
+            f"This league may not be available yet. Try another league.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="back_to_leagues")]])
+        )
         return
     
     teams = sorted(data['player_stats']['team_name'].unique())
