@@ -319,9 +319,9 @@ async def show_stats_page2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # TOUCHES
     stats_text += "👆 TOUCHES\n"
     stats_text += f"Touches p90: {weighted_avg('touches_per_90'):.2f}\n"
-    stats_text += f"Touches F3rd p90: {weighted_avg('touches_in_final_third_per_90'):.2f}\n"
-    stats_text += f"Touches M3rd p90: {weighted_avg('touches_in_middle_third_per_90'):.2f}\n"
-    stats_text += f"Touches O3rd p90: {weighted_avg('touches_in_own_third_per_90'):.2f}\n"
+    stats_text += f"Touches Final thirdrd p90: {weighted_avg('touches_in_final_third_per_90'):.2f}\n"
+    stats_text += f"Touches Middle third p90: {weighted_avg('touches_in_middle_third_per_90'):.2f}\n"
+    stats_text += f"Touches Own third p90: {weighted_avg('touches_in_own_third_per_90'):.2f}\n"
     stats_text += f"Touches in Box p90: {weighted_avg('touches_in_box_per_90'):.2f}\n"
     stats_text += f"Received Passes p90: {weighted_avg('received_passes_per_90'):.2f}\n\n"
     
@@ -863,3 +863,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
