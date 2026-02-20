@@ -35,10 +35,10 @@ BRANCH = "main"
 
 # Маппинг лиг
 LEAGUES = {
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League": "ENG1",
-    "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship": "ENG2",
-    "🏴󠁧󠁢󠁥󠁮 League One": "ENG3",
-    "🏴󠁧󠁢 League Two": "ENG4",
+    "Premier League": "ENG1",
+    "Championship": "ENG2",
+    "League One": "ENG3",
+    "League Two": "ENG4",
     "🇪🇸 La Liga": "SPA1",
     "🇩🇪 Bundesliga": "GER1",
     "🇮🇹 Serie A": "ITA1",
@@ -50,7 +50,7 @@ LEAGUES = {
     "🇬🇷 Super League": "GRE1",
     "🇦🇹 Bundesliga": "AUT1",
     "🇩🇰 Superliga": "DEN1",
-    "🏴󠁧󠁢󠁳󠁣󠁴 Premiership": "SCO1",
+    "Premiership": "SCO1",
     "🇸🇦 Pro League": "SAU1",
     "🇺🇸 MLS": "USA1",
     "🇧🇷 Brasileirão": "BRA1",
@@ -881,5 +881,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
